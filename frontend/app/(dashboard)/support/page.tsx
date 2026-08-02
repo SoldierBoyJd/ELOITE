@@ -183,20 +183,20 @@ export default function SupportPage() {
           </div>
 
           {/* Video CTA */}
-          <div className="rounded-[20px] p-5 flex flex-col gap-3"
-            style={{ background: "var(--primary)" }}>
+          <div className={`${card} p-5 flex flex-col gap-3`}
+            style={{ background: "var(--surface)" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: "rgba(255,255,255,.12)" }}>
-              <Video className="w-4 h-4" style={{ color: "var(--primary-fg)" }} />
+              style={{ background: "var(--surface-2)" }}>
+              <Video className="w-4 h-4" style={{ color: "var(--heading)" }} />
             </div>
-            <p className="font-semibold text-sm" style={{ color: "var(--primary-fg)" }}>
+            <p className="font-semibold text-sm" style={{ color: "var(--heading)" }}>
               Video Tutorials
             </p>
-            <p className="text-[11px] leading-relaxed" style={{ color: "color-mix(in srgb, var(--primary-fg) 60%, transparent)" }}>
+            <p className="text-[11px] leading-relaxed" style={{ color: "var(--muted)" }}>
               Watch step-by-step walkthroughs for all major features.
             </p>
             <button className="h-8 rounded-xl text-xs font-semibold transition-colors hover:opacity-90"
-              style={{ background: "var(--primary-fg)", color: "var(--primary)" }}>
+              style={{ background: "var(--primary)", color: "var(--primary-fg)" }}>
               Browse Videos
             </button>
           </div>
