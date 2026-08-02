@@ -16,7 +16,7 @@ const faqs = [
   },
   {
     q: "Can I connect my existing accounting software?",
-    a: "Yes, StockPilot AI integrates with Tally, Zoho Books, QuickBooks, and other major accounting platforms via our API or direct connectors available in Settings > Integrations.",
+    a: "Yes, ÉLOITE integrates with Tally, Zoho Books, QuickBooks, and other major accounting platforms via our API or direct connectors available in Settings > Integrations.",
   },
   {
     q: "How often is the forecast model updated?",
@@ -35,7 +35,7 @@ const contacts = [
     bg: "bg-[#0F8F83]/10", col: "text-[#0F8F83]",
   },
   {
-    icon: Mail,         label: "Email Support",   desc: "support@stockpilot.ai",
+    icon: Mail,         label: "Email Support",   desc: "support@eloite.ai",
     badge: "24h SLA",  bc: "bg-[#9CA3AF]/15 text-[#9CA3AF]",
     bg: "bg-[var(--surface-2)]", col: "text-[var(--body)]",
   },

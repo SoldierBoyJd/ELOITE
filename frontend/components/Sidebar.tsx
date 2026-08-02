@@ -40,7 +40,7 @@ export function Sidebar() {
         </div>
         <div className="flex flex-col leading-tight">
           <span className="font-semibold text-sm tracking-tight text-[var(--heading)]">
-            StockPilot AI
+            ÉLOITE
           </span>
           <span className="text-[11px] text-[var(--muted)]">Business Intelligence</span>
         </div>

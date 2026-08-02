@@ -3,7 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "StockPilot AI — Business Intelligence",
+  title: "ÉLOITE — Business Intelligence",
   description: "AI-powered business intelligence for CFOs, warehouse managers, and finance teams.",
 };
 
