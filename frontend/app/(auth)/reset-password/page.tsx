@@ -49,7 +49,6 @@ function ResetPasswordForm() {
     toast.success("Password updated successfully!");
     setSuccess(true);
     setLoading(false);
-    const supabase = createClient();
     await supabase.auth.signOut();
     setTimeout(() => { window.location.href = "/login"; }, 2500);
   };

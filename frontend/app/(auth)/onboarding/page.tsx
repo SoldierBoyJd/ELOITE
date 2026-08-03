@@ -28,28 +28,22 @@ const CURRENCIES = [
 
 function OnboardingForm() {
   const router = useRouter();
-  const supabase = createClient();
 
-  const [step, setStep] = useState(1);
+  const [step, setStep]     = useState(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  // Step 1 — Personal
-  const [fullName, setFullName] = useState("");
-
-  // Step 2 — Business
+  const [error, setError]   = useState("");
+  const [fullName, setFullName]         = useState("");
   const [businessName, setBusinessName] = useState("");
   const [industry, setIndustry]         = useState("");
   const [gstin, setGstin]               = useState("");
   const [currency, setCurrency]         = useState("INR");
 
-  // Prefill name from existing metadata
   useEffect(() => {
+    const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       if (data.user?.user_metadata?.full_name) {
         setFullName(data.user.user_metadata.full_name);
       }
-      // If already onboarded, skip to dashboard
       if (data.user?.user_metadata?.onboarded) {
         router.replace("/");
       }
@@ -61,7 +55,7 @@ function OnboardingForm() {
     if (!industry) { setError("Please select your industry."); return; }
     setLoading(true);
     setError("");
-
+    const supabase = createClient();
     const { error } = await supabase.auth.updateUser({
       data: {
         full_name:     fullName,
