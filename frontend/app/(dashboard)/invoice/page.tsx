@@ -63,7 +63,7 @@ export default function InvoicePage() {
             AI-powered invoice scanning, extraction and fraud detection
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button className="h-9 px-4 rounded-xl text-sm font-medium transition-colors hover:opacity-80"
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--heading)" }}>
             Upload Invoice

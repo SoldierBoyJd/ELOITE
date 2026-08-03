@@ -78,7 +78,7 @@ export default function ReportsPage() {
                 <p className="text-sm font-semibold truncate" style={{ color: "var(--heading)" }}>{r.name}</p>
                 <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>{r.desc}</p>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
                 <div className="text-right hidden md:block">
                   <p className="text-xs font-medium" style={{ color: "var(--body)" }}>{r.date}</p>
                   <p className="text-[11px]" style={{ color: "var(--neutral)" }}>{r.size} · {r.fmt}</p>

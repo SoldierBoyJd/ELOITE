@@ -33,7 +33,7 @@ export default function PaymentsPage() {
             Track vendor payments, receivables and cash flow
           </p>
         </div>
-        <button className="h-9 px-4 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 hover:opacity-80"
+        <button className="h-9 px-4 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 hover:opacity-80 shrink-0"
           style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--heading)" }}>
           <Download className="w-4 h-4" /> Export
         </button>
@@ -73,7 +73,7 @@ export default function PaymentsPage() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[540px]">
-          <thead>
+            <thead>
             <tr style={{ background: "var(--surface-2)" }}>
               {["Vendor","Amount","Due Date","Status","Action"].map((h, i) => (
                 <th key={h} className={`px-6 py-3 text-xs font-semibold uppercase tracking-wider ${i === 1 ? "text-right" : "text-left"}`}
