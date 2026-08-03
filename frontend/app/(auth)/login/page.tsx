@@ -38,6 +38,7 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { setError(error.message); setLoading(false); return; }
     toast.success("Welcome back!");
@@ -48,6 +49,7 @@ function LoginForm() {
   const handleGoogle = async () => {
     setGL(true);
     setError("");
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}` },

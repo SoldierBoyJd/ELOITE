@@ -8,28 +8,23 @@ import { toast } from "sonner";
 
 function ResetPasswordForm() {
   const router = useRouter();
-  const supabase = createClient();
 
-  const [password, setPassword]       = useState("");
-  const [confirm, setConfirm]         = useState("");
-  const [showPass, setShowPass]       = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState("");
-  const [success, setSuccess]         = useState(false);
+  const [password, setPassword]         = useState("");
+  const [confirm, setConfirm]           = useState("");
+  const [showPass, setShowPass]         = useState(false);
+  const [showConfirm, setShowConfirm]   = useState(false);
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState("");
+  const [success, setSuccess]           = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
 
-  /* Supabase sends the session via URL hash after confirm route.
-     Listen for the PASSWORD_RECOVERY event. */
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event) => {
-        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-          setSessionReady(true);
-        }
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+        setSessionReady(true);
       }
-    );
-    // Also check if session already exists (user navigated here after confirm)
+    });
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setSessionReady(true);
     });
@@ -38,17 +33,11 @@ function ResetPasswordForm() {
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirm) {
-      setError("Passwords do not match.");
-      return;
-    }
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
+    if (password !== confirm) { setError("Passwords do not match."); return; }
+    if (password.length < 8)  { setError("Password must be at least 8 characters."); return; }
     setLoading(true);
     setError("");
-
+    const supabase = createClient();
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
@@ -60,8 +49,7 @@ function ResetPasswordForm() {
     toast.success("Password updated successfully!");
     setSuccess(true);
     setLoading(false);
-
-    // Sign out so user logs in fresh with new password
+    const supabase = createClient();
     await supabase.auth.signOut();
     setTimeout(() => { window.location.href = "/login"; }, 2500);
   };

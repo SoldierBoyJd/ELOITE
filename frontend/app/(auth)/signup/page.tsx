@@ -15,12 +15,11 @@ function SignupForm() {
   const [error, setError]         = useState("");
   const [success, setSuccess]     = useState(false);
 
-  const supabase = createClient();
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    const supabase = createClient();
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -38,6 +37,7 @@ function SignupForm() {
   const handleGoogle = async () => {
     setGL(true);
     setError("");
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${location.origin}/auth/callback` },
