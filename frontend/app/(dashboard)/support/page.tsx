@@ -95,7 +95,7 @@ export default function SupportPage() {
       </div>
 
       {/* Contact Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {contacts.map((c, i) => (
           <div key={i}
             className={`${card} p-5 flex flex-col gap-3 cursor-pointer transition-colors`}
@@ -116,7 +116,7 @@ export default function SupportPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
 
         {/* FAQs */}
         <div className={`col-span-2 ${card} overflow-hidden`} style={{ background: "var(--surface)" }}>

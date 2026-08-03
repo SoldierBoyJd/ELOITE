@@ -1,16 +1,5 @@
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
+import { AppShell } from "@/components/AppShell";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-screen" style={{ background: "var(--bg)" }}>
-      <Sidebar />
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto p-8">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+  return <AppShell>{children}</AppShell>;
 }

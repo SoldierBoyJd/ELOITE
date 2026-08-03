@@ -21,7 +21,7 @@ export default function ReportsPage() {
     <div className="flex flex-col gap-8">
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--heading)" }}>Reports</h1>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
@@ -41,7 +41,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {[
           { label: "Reports This Month", value: "24",    icon: FileBarChart, bg: "var(--surface-2)", col: "text-[var(--body)]" },
           { label: "Scheduled Reports",  value: "8",     icon: Calendar,     bg: "rgba(15,143,131,.10)", col: "text-[#0F8F83]" },
@@ -67,7 +67,7 @@ export default function ReportsPage() {
         </div>
         <div className="flex flex-col divide-y divide-[var(--border)]">
           {reports.map((r, i) => (
-            <div key={i} className="flex items-center gap-4 px-6 py-4 transition-colors"
+            <div key={i} className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4 transition-colors"
               style={{ background: "var(--surface)" }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--surface-2)"}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "var(--surface)"}>

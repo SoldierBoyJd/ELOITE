@@ -78,7 +78,7 @@ export default function HealthPage() {
     <div className="flex flex-col gap-8">
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--heading)" }}>
             Business Health
@@ -104,7 +104,7 @@ export default function HealthPage() {
       </div>
 
       {/* Score + Radar */}
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
 
         {/* Overall Score */}
         <div className={`${card} p-6 flex flex-col gap-5`} style={{ background: "var(--surface)" }}>
@@ -112,7 +112,7 @@ export default function HealthPage() {
             <h2 className="font-semibold text-base" style={{ color: "var(--heading)" }}>Overall Health Score</h2>
             <span className="rounded-full text-xs px-2.5 py-0.5 font-medium bg-[#0F8F83]/10 text-[#0F8F83]">+3 MoM</span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative shrink-0" style={{ width: 140, height: 140 }}>
               <div className="w-full h-full rounded-full" style={{
                 background: `conic-gradient(
@@ -153,7 +153,7 @@ export default function HealthPage() {
         {/* Radar */}
         <div className={`${card} p-6 flex flex-col gap-4`} style={{ background: "var(--surface)" }}>
           <h2 className="font-semibold text-base" style={{ color: "var(--heading)" }}>Dimension Breakdown</h2>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
             <div style={{ height: 200, width: 200 }} className="shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarData} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
@@ -246,7 +246,7 @@ export default function HealthPage() {
           <Sparkles className="w-4 h-4" style={{ color: "var(--heading)" }} />
           <h2 className="font-semibold text-base" style={{ color: "var(--heading)" }}>AI Recommendations</h2>
         </div>
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {recs.map((r, i) => (
             <div key={i} className={`${card} p-5 flex flex-col gap-3`} style={{ background: "var(--surface)" }}>
               <div className={`w-9 h-9 rounded-xl ${r.bg} flex items-center justify-center`}>

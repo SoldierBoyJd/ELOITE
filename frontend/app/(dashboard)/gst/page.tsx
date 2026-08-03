@@ -51,7 +51,7 @@ export default function GSTPage() {
     <div className="flex flex-col gap-8">
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--heading)" }}>
             GST Compliance
@@ -60,7 +60,7 @@ export default function GSTPage() {
             Monitor filings, detect mismatches, and stay compliant
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
             <select value={quarter} onChange={e => setQuarter(e.target.value)}
               className="h-9 pl-3 pr-8 rounded-xl text-sm outline-none appearance-none"
@@ -80,10 +80,10 @@ export default function GSTPage() {
       </div>
 
       {/* Score + Metrics */}
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
 
         {/* Compliance Score */}
-        <div className={`${card} p-6 flex flex-col gap-5`} style={{ background: "var(--surface)" }}>
+        <div className={`col-span-1 ${card} p-6 flex flex-col gap-5`} style={{ background: "var(--surface)" }}>
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-base" style={{ color: "var(--heading)" }}>Compliance Score</h2>
             <span className="rounded-full text-xs px-2.5 py-0.5 font-medium bg-[#0F8F83]/10 text-[#0F8F83]">
@@ -123,7 +123,7 @@ export default function GSTPage() {
         </div>
 
         {/* 2x2 Metric Cards */}
-        <div className="col-span-2 grid grid-cols-2 gap-4">
+        <div className="col-span-1 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {[
             { label: "Missing GST Entries", value: "12", status: "danger",   icon: XCircle,       desc: "Invoices without GST number — action needed" },
             { label: "Tax Mismatch",         value: "7",  status: "warning",  icon: AlertTriangle, desc: "Tax amount difference between invoice and return" },
@@ -155,7 +155,7 @@ export default function GSTPage() {
       </div>
 
       {/* Calendar + AI Risk */}
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
 
         {/* Compliance Calendar */}
         <div className={`${card} overflow-hidden`} style={{ background: "var(--surface)" }}>

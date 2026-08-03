@@ -101,7 +101,7 @@ export default function ForecastPage() {
     <div className="flex flex-col gap-8">
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--heading)" }}>
             Forecast Analytics
@@ -111,7 +111,7 @@ export default function ForecastPage() {
             <Sparkles className="w-3 h-3" />AI Powered
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
             <select value={category} onChange={e => setCategory(e.target.value)}
               className="h-9 pl-3 pr-8 rounded-xl text-sm outline-none appearance-none"
@@ -140,7 +140,7 @@ export default function ForecastPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {kpis.map((k, i) => (
           <div key={i} className={`${card} p-5 flex flex-col gap-3`} style={{ background: "var(--surface)" }}>
             <div className="flex items-center justify-between">
@@ -209,7 +209,7 @@ export default function ForecastPage() {
 
       {/* Product Table */}
       <div className={`${card} overflow-hidden`} style={{ background: "var(--surface)" }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-[var(--border)]">
           <h2 className="font-semibold text-sm" style={{ color: "var(--heading)" }}>
             Product-Level Forecast (Next 30 Days)
           </h2>
@@ -218,7 +218,8 @@ export default function ForecastPage() {
             View All <BarChart3 className="w-3.5 h-3.5" />
           </button>
         </div>
-        <table className="w-full">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px]">
           <thead>
             <tr style={{ background: "var(--surface-2)" }}>
               {["Product","Forecast Units","Trend","Confidence","Variance"].map((h, i) => (
@@ -265,6 +266,7 @@ export default function ForecastPage() {
             ))}
           </tbody>
         </table>
+        </div>{/* overflow-x-auto */}
       </div>
 
       {/* Seasonality Insights */}
@@ -273,7 +275,7 @@ export default function ForecastPage() {
           <Sparkles className="w-4 h-4" style={{ color: "var(--heading)" }} />
           <h2 className="font-semibold text-base" style={{ color: "var(--heading)" }}>Seasonality Insights</h2>
         </div>
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {insights.map((ins, i) => (
             <div key={i} className="rounded-[20px] border border-[var(--border)] p-5 flex flex-col gap-3"
               style={{ background: "var(--surface-2)" }}>

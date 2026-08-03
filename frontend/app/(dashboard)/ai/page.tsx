@@ -73,10 +73,10 @@ export default function AIPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
 
         {/* Chat */}
-        <div className={`col-span-2 ${card} flex flex-col`} style={{ height: 500, background: "var(--surface)" }}>
+        <div className={`col-span-1 lg:col-span-2 ${card} flex flex-col`} style={{ height: "min(500px, 80vw)", minHeight: 360, background: "var(--surface)" }}>
           {/* Chat Header */}
           <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border)]">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center"

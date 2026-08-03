@@ -54,7 +54,7 @@ export default function InvoicePage() {
     <div className="flex flex-col gap-8">
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--heading)" }}>
             Invoice Intelligence
@@ -76,7 +76,7 @@ export default function InvoicePage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: "Total Invoices",   value: "1,240", badge: "All Time",           bc: "bg-[#9CA3AF]/15 text-[#9CA3AF]" },
           { label: "Processed Today",  value: "34",    badge: "+6 from yesterday",   bc: "bg-[#0F8F83]/10 text-[#0F8F83]" },
@@ -94,10 +94,10 @@ export default function InvoicePage() {
       </div>
 
       {/* Preview + Analysis */}
-      <div className="grid grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 sm:gap-5">
 
         {/* Document Preview */}
-        <div className={`col-span-3 ${card} flex flex-col overflow-hidden`}
+        <div className={`col-span-1 xl:col-span-3 ${card} flex flex-col overflow-hidden`}
           style={{ background: "var(--surface)" }}>
           {/* Toolbar */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border)]">
@@ -217,10 +217,10 @@ export default function InvoicePage() {
         </div>
 
         {/* Right Panel */}
-        <div className="col-span-2 flex flex-col gap-5">
+        <div className="col-span-1 xl:col-span-2 flex flex-col gap-5">
 
           {/* Score Cards */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {[
               { label: "Duplicate Score", value: "4%",        status: "success", note: "Low risk"   },
               { label: "Fraud Score",     value: "32%",       status: "warning", note: "Medium risk" },
@@ -352,7 +352,7 @@ export default function InvoicePage() {
       {/* Processing Timeline */}
       <div className={`${card} p-6`} style={{ background: "var(--surface)" }}>
         <h2 className="font-semibold text-sm mb-6" style={{ color: "var(--heading)" }}>Processing Timeline</h2>
-        <div className="flex items-center justify-between relative">
+        <div className="flex flex-wrap items-start justify-between relative gap-y-6">
           <div className="absolute left-0 right-0 top-5 h-0.5 z-0" style={{ background: "var(--border)" }} />
           {timeline.map((step, i) => (
             <div key={i} className="flex flex-col items-center gap-2 z-10 relative">

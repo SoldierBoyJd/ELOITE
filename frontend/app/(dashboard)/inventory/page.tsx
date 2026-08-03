@@ -108,7 +108,7 @@ export default function InventoryPage() {
     <div className="flex flex-col gap-8">
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--heading)" }}>
             Inventory Intelligence
@@ -128,7 +128,7 @@ export default function InventoryPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 -mt-4">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 -mt-4">
         {["All Warehouses", "All Categories"].map((ph, i) => (
           <select key={i} className="h-9 px-3 rounded-xl text-sm outline-none"
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--body)" }}>
@@ -153,7 +153,7 @@ export default function InventoryPage() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: "Total SKUs",    value: "247", icon: Package,     cls: "text-[var(--body)]",   bg: "var(--surface-2)" },
           { label: "Critical Stock", value: "9",  icon: AlertTriangle, cls: "text-[#DC2626]",      bg: "rgba(220,38,38,.10)" },
@@ -174,7 +174,7 @@ export default function InventoryPage() {
       </div>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
         {filtered.map((product) => {
           const sc = statusConfig[product.statusColor];
           const col = product.stockPct < 15 ? "#DC2626" : product.stockPct < 40 ? "#D97706" : "#0F8F83";

@@ -27,20 +27,23 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-8">
 
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--heading)" }}>Settings</h1>
-        <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-          Manage your business profile, preferences, and integrations
-        </p>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--heading)" }}>Settings</h1>
+          <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
+            Manage your business profile, preferences, and integrations
+          </p>
+        </div>
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-5 sm:gap-6">
         {/* Side tabs */}
-        <div className="w-56 shrink-0">
-          <div className={`${card} p-2 flex flex-col gap-0.5`} style={{ background: "var(--surface)" }}>
+        <div className="w-full lg:w-56 shrink-0">
+          <div className={`${card} p-2 flex flex-row lg:flex-col gap-0.5 overflow-x-auto`} style={{ background: "var(--surface)" }}>
             {tabs.map((tab) => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors"
+                className="flex items-center gap-2 sm:gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors whitespace-nowrap"
                 style={
                   activeTab === tab.id
                     ? {
@@ -67,7 +70,7 @@ export default function SettingsPage() {
                   Update your business information and GST details
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   ["Business Name", "businessName"],
                   ["GSTIN",         "gstin"       ],

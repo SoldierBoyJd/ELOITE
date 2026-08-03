@@ -24,7 +24,7 @@ export default function PaymentsPage() {
     <div className="flex flex-col gap-8">
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--heading)" }}>
             Payments
@@ -40,7 +40,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: "Total Payable",    value: "₹7.4L",   icon: CreditCard,  bg: "bg-[#DC2626]/10", col: "text-[#DC2626]", badge: "3 Overdue",   bc: "bg-[#DC2626]/10 text-[#DC2626]" },
           { label: "Total Receivable", value: "₹4.2L",   icon: TrendingUp,  bg: "bg-[#D97706]/10", col: "text-[#D97706]", badge: "7 Pending",   bc: "bg-[#D97706]/10 text-[#D97706]" },
@@ -64,14 +64,15 @@ export default function PaymentsPage() {
 
       {/* Payments Table */}
       <div className={`${card} overflow-hidden`} style={{ background: "var(--surface)" }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-[var(--border)]">
           <h2 className="font-semibold text-sm" style={{ color: "var(--heading)" }}>Upcoming Payments</h2>
           <button className="text-sm flex items-center gap-1 transition-colors hover:opacity-80"
             style={{ color: "var(--muted)" }}>
             View All <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
-        <table className="w-full">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[540px]">
           <thead>
             <tr style={{ background: "var(--surface-2)" }}>
               {["Vendor","Amount","Due Date","Status","Action"].map((h, i) => (
@@ -110,6 +111,7 @@ export default function PaymentsPage() {
             ))}
           </tbody>
         </table>
+        </div>{/* overflow-x-auto */}
       </div>
     </div>
   );

@@ -123,7 +123,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-8">
 
       {/* ── Page header ──────────────────────────────────── */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--heading)" }}>
             Good morning, Rajesh
@@ -151,7 +151,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 1 — Revenue / Inventory / Payments ───────── */}
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         <SparkCard label="Revenue (MTD)" value="₹42.8L" badge="+12.4%"
           badgeCls="bg-[#0F8F83]/10 text-[#0F8F83]" footer="vs ₹38.1L last month"
           icon={IndianRupee} iconBg="bg-[#0F8F83]/10" iconCls="text-[#0F8F83]"
@@ -167,7 +167,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 2 — GST / Stock / Duplicate ─────────────── */}
-      <div className="grid grid-cols-3 gap-5 -mt-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 -mt-3">
         {[
           {
             icon: ShieldAlert, bg: "bg-[#DC2626]/10", cls: "text-[#DC2626]",
@@ -214,7 +214,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Health Score + Breakdown ─────────────────────── */}
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
         {/* Gauge */}
         <Card className="p-6 flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -269,15 +269,15 @@ export default function DashboardPage() {
 
       {/* ── Recent Activity ──────────────────────────────── */}
       <Card className="overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-[var(--border)]">
           <h2 className="font-semibold text-base" style={{ color: "var(--heading)" }}>Recent Activity</h2>
           <button className="text-sm flex items-center gap-1 transition-colors hover:opacity-80"
             style={{ color: "var(--muted)" }}>
             View All <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="overflow-x-auto -webkit-overflow-scrolling-touch">
+          <table className="w-full min-w-[540px]">
             <thead>
               <tr style={{ background: "var(--surface-2)" }}>
                 {["Time", "Event", "Module", "Status", "Action"].map((h) => (
@@ -334,7 +334,7 @@ export default function DashboardPage() {
             View All <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {[
             {
               icon: AlertTriangle, bg: "bg-[#DC2626]/10", cls: "text-[#DC2626]",
