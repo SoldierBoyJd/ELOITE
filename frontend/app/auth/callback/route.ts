@@ -4,39 +4,34 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const code = url.searchParams.get("code");
-    const siteUrl = url.origin; // always use the actual request origin — reliable on Vercel
+    const siteUrl = url.origin;
 
-    // Guard: no code
     if (!code) {
         return NextResponse.redirect(`${siteUrl}/login?error=no_code`);
     }
 
-    // Env vars — use the values baked in at build time via NEXT_PUBLIC_ prefix
-    // These ARE available in route handlers when set in Vercel env vars
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-        // Fallback: redirect to login without crashing — user can retry
         console.error("[/auth/callback] Supabase env vars missing at runtime");
         return NextResponse.redirect(`${siteUrl}/login`);
     }
 
-    // Mutable response — gets updated as cookies are set
-    let redirectTo = `${siteUrl}/dashboard`;
-    let response = NextResponse.redirect(redirectTo);
+    // Start with a temporary response — we'll replace it after we know the destination
+    const tempResponse = NextResponse.next();
+    const cookiesToForward: { name: string; value: string; options: Record<string, unknown> }[] = [];
 
     const supabase = createServerClient(supabaseUrl, supabaseKey, {
         cookies: {
             getAll: () => request.cookies.getAll(),
             setAll: (cookiesToSet) => {
-                // Apply to request
+                // Collect cookies — we'll attach them to the final redirect response
+                cookiesToSet.forEach(({ name, value, options }) => {
+                    cookiesToForward.push({ name, value, options });
+                });
+                // Also apply to tempResponse in case Supabase reads them back
                 cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-                // Rebuild response with cookies
-                response = NextResponse.redirect(redirectTo);
-                cookiesToSet.forEach(({ name, value, options }) =>
-                    response.cookies.set(name, value, options)
-                );
             },
         },
     });
@@ -49,21 +44,23 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(`${siteUrl}/login?error=auth_failed`);
     }
 
-    // Determine where to send the user
+    // Get the user AFTER exchange so cookies are applied
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
         return NextResponse.redirect(`${siteUrl}/login?error=auth_failed`);
     }
 
-    if (!user.user_metadata?.onboarded) {
-        redirectTo = `${siteUrl}/onboarding`;
-        const onboardResp = NextResponse.redirect(redirectTo);
-        response.cookies.getAll().forEach(({ name, value }) =>
-            onboardResp.cookies.set(name, value)
-        );
-        return onboardResp;
-    }
+    // Decide where to send the user
+    const destination = user.user_metadata?.onboarded
+        ? `${siteUrl}/dashboard`
+        : `${siteUrl}/onboarding`;
 
-    return response;
+    // Build the final redirect response and attach all session cookies
+    const finalResponse = NextResponse.redirect(destination);
+    cookiesToForward.forEach(({ name, value, options }) => {
+        finalResponse.cookies.set(name, value, options as Parameters<typeof finalResponse.cookies.set>[2]);
+    });
+
+    return finalResponse;
 }
