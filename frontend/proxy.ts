@@ -2,35 +2,45 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const { pathname } = request.nextUrl;
+
+    // If env vars are missing, allow the request through
+    // (should never happen in production — indicates misconfiguration)
+    if (!supabaseUrl || !supabaseKey) {
+        console.error("Missing Supabase env vars — skipping auth check");
+        return NextResponse.next({ request });
+    }
+
     let supabaseResponse = NextResponse.next({ request });
 
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                getAll() {
-                    return request.cookies.getAll();
-                },
-                setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value }) =>
-                        request.cookies.set(name, value)
-                    );
-                    supabaseResponse = NextResponse.next({ request });
-                    cookiesToSet.forEach(({ name, value, options }) =>
-                        supabaseResponse.cookies.set(name, value, options)
-                    );
-                },
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
+        cookies: {
+            getAll() {
+                return request.cookies.getAll();
             },
-        }
-    );
+            setAll(cookiesToSet) {
+                cookiesToSet.forEach(({ name, value }) =>
+                    request.cookies.set(name, value)
+                );
+                supabaseResponse = NextResponse.next({ request });
+                cookiesToSet.forEach(({ name, value, options }) =>
+                    supabaseResponse.cookies.set(name, value, options)
+                );
+            },
+        },
+    });
 
-    // Refresh session — do not remove
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-
-    const { pathname } = request.nextUrl;
+    // Refresh session
+    let user = null;
+    try {
+        const { data } = await supabase.auth.getUser();
+        user = data.user;
+    } catch {
+        // If auth fails, treat as unauthenticated
+        user = null;
+    }
 
     // Routes that don't require auth
     const publicRoutes = [
@@ -60,14 +70,14 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
-    // Redirect authenticated + already onboarded users away from onboarding
+    // Redirect already-onboarded users away from onboarding
     if (user && pathname === "/onboarding" && user.user_metadata?.onboarded) {
         const url = request.nextUrl.clone();
         url.pathname = "/";
         return NextResponse.redirect(url);
     }
 
-    // Redirect authenticated but non-onboarded users to /onboarding
+    // Redirect non-onboarded authenticated users to /onboarding
     const skipOnboardingCheck = ["/onboarding", "/verified", "/auth", "/reset-password"].some(
         (r) => pathname.startsWith(r)
     );
