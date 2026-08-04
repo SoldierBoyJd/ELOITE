@@ -4,34 +4,36 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const code = url.searchParams.get("code");
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? url.origin;
+    const siteUrl = url.origin; // always use the actual request origin — reliable on Vercel
 
+    // Guard: no code
     if (!code) {
         return NextResponse.redirect(`${siteUrl}/login?error=no_code`);
     }
 
+    // Env vars — use the values baked in at build time via NEXT_PUBLIC_ prefix
+    // These ARE available in route handlers when set in Vercel env vars
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-        console.error("[auth/callback] Missing Supabase env vars");
-        return NextResponse.redirect(`${siteUrl}/login?error=config_error`);
+        // Fallback: redirect to login without crashing — user can retry
+        console.error("[/auth/callback] Supabase env vars missing at runtime");
+        return NextResponse.redirect(`${siteUrl}/login`);
     }
 
-    // Build response first so we can set cookies on it
-    let response = NextResponse.redirect(`${siteUrl}/dashboard`);
+    // Mutable response — gets updated as cookies are set
+    let redirectTo = `${siteUrl}/dashboard`;
+    let response = NextResponse.redirect(redirectTo);
 
     const supabase = createServerClient(supabaseUrl, supabaseKey, {
         cookies: {
-            getAll() {
-                return request.cookies.getAll();
-            },
-            setAll(cookiesToSet) {
-                // Set cookies on both request and response
-                cookiesToSet.forEach(({ name, value }) =>
-                    request.cookies.set(name, value)
-                );
-                response = NextResponse.redirect(`${siteUrl}/dashboard`);
+            getAll: () => request.cookies.getAll(),
+            setAll: (cookiesToSet) => {
+                // Apply to request
+                cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+                // Rebuild response with cookies
+                response = NextResponse.redirect(redirectTo);
                 cookiesToSet.forEach(({ name, value, options }) =>
                     response.cookies.set(name, value, options)
                 );
@@ -39,30 +41,28 @@ export async function GET(request: NextRequest) {
         },
     });
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    // Exchange the PKCE code for a session
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (error) {
-        console.error("[auth/callback] exchange error:", error.message);
-        return NextResponse.redirect(
-            `${siteUrl}/login?error=exchange_failed&msg=${encodeURIComponent(error.message)}`
-        );
+    if (exchangeError) {
+        console.error("[/auth/callback] exchange failed:", exchangeError.message);
+        return NextResponse.redirect(`${siteUrl}/login?error=auth_failed`);
     }
 
-    // Get user and check onboarding status
+    // Determine where to send the user
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        return NextResponse.redirect(`${siteUrl}/login?error=no_user`);
+        return NextResponse.redirect(`${siteUrl}/login?error=auth_failed`);
     }
 
-    // New user — send to onboarding
     if (!user.user_metadata?.onboarded) {
-        const onboardingResponse = NextResponse.redirect(`${siteUrl}/onboarding`);
-        // Copy all cookies from the exchange to onboarding redirect
-        response.cookies.getAll().forEach(({ name, value }) => {
-            onboardingResponse.cookies.set(name, value);
-        });
-        return onboardingResponse;
+        redirectTo = `${siteUrl}/onboarding`;
+        const onboardResp = NextResponse.redirect(redirectTo);
+        response.cookies.getAll().forEach(({ name, value }) =>
+            onboardResp.cookies.set(name, value)
+        );
+        return onboardResp;
     }
 
     return response;
