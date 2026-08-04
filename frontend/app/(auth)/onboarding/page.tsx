@@ -56,7 +56,9 @@ function OnboardingForm() {
     setLoading(true);
     setError("");
     const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({
+
+    // 1. Update Supabase Auth user metadata
+    const { error: authError, data: authData } = await supabase.auth.updateUser({
       data: {
         full_name:     fullName,
         business_name: businessName,
@@ -67,10 +69,43 @@ function OnboardingForm() {
       },
     });
 
-    if (error) {
-      setError(error.message);
+    if (authError) {
+      setError(authError.message);
       setLoading(false);
       return;
+    }
+
+    // 2. Create company + user rows in DB (in case trigger didn't run)
+    const user = authData.user;
+    if (user) {
+      // Upsert company
+      const { data: company } = await supabase
+        .from("companies")
+        .upsert({
+          name:       businessName,
+          gst_number: gstin || null,
+          industry:   industry || null,
+          currency:   currency || "INR",
+        }, { onConflict: "id", ignoreDuplicates: true })
+        .select("id")
+        .single();
+
+      // Upsert user (linked to company)
+      if (company?.id) {
+        const { data: roleData } = await supabase
+          .from("roles")
+          .select("id")
+          .eq("name", "owner")
+          .single();
+
+        await supabase.from("users").upsert({
+          supabase_uid: user.id,
+          company_id:   company.id,
+          name:         fullName || user.email?.split("@")[0] || "User",
+          email:        user.email ?? "",
+          role_id:      roleData?.id ?? null,
+        }, { onConflict: "supabase_uid", ignoreDuplicates: true });
+      }
     }
 
     toast.success(`Welcome to ÉLOITE, ${fullName || businessName}!`);
