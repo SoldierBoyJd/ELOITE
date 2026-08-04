@@ -50,9 +50,10 @@ function LoginForm() {
     setGL(true);
     setError("");
     const supabase = createClient();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? location.origin;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+      options: { redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}` },
     });
     if (error) { setError(error.message); setGL(false); }
   };

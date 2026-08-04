@@ -20,12 +20,13 @@ function SignupForm() {
     setLoading(true);
     setError("");
     const supabase = createClient();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? location.origin;
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: `${location.origin}/auth/callback`,
+        emailRedirectTo: `${siteUrl}/auth/callback`,
       },
     });
     if (error) { setError(error.message); setLoading(false); return; }
@@ -38,9 +39,10 @@ function SignupForm() {
     setGL(true);
     setError("");
     const supabase = createClient();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? location.origin;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: { redirectTo: `${siteUrl}/auth/callback` },
     });
     if (error) { setError(error.message); setGL(false); }
   };
