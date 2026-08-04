@@ -16,7 +16,7 @@ export default function VerifiedPage() {
       if (data.user && !data.user.user_metadata?.onboarded) {
         router.push("/onboarding");
       } else {
-        router.push("/");
+        router.push("/dashboard");
       }
     }, 2000);
     return () => clearTimeout(timer);

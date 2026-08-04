@@ -44,6 +44,7 @@ export async function proxy(request: NextRequest) {
 
     // Routes that don't require auth
     const publicRoutes = [
+        "/",
         "/login",
         "/signup",
         "/auth/callback",
@@ -66,14 +67,14 @@ export async function proxy(request: NextRequest) {
     // Redirect authenticated users away from login/signup
     if (user && (pathname === "/login" || pathname === "/signup")) {
         const url = request.nextUrl.clone();
-        url.pathname = "/";
+        url.pathname = "/dashboard";
         return NextResponse.redirect(url);
     }
 
     // Redirect already-onboarded users away from onboarding
     if (user && pathname === "/onboarding" && user.user_metadata?.onboarded) {
         const url = request.nextUrl.clone();
-        url.pathname = "/";
+        url.pathname = "/dashboard";
         return NextResponse.redirect(url);
     }
 

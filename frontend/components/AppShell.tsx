@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const navItems = [
-  { href: "/",          label: "Dashboard",             icon: LayoutDashboard },
+  { href: "/dashboard", label: "Dashboard",             icon: LayoutDashboard },
   { href: "/inventory", label: "Inventory Intelligence", icon: Package },
   { href: "/invoice",   label: "Invoice Intelligence",  icon: FileText },
   { href: "/gst",       label: "GST Compliance",        icon: CheckCircle },

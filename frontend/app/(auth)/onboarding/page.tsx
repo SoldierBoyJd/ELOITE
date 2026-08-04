@@ -45,7 +45,7 @@ function OnboardingForm() {
         setFullName(data.user.user_metadata.full_name);
       }
       if (data.user?.user_metadata?.onboarded) {
-        router.replace("/");
+        router.replace("/dashboard");
       }
     });
   }, []);
