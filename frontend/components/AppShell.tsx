@@ -29,6 +29,8 @@ const navItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router   = useRouter();
+
+  // Create client once, lazily — never at module level
   const supabase = createClient();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
