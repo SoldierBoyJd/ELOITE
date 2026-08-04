@@ -90,7 +90,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <Link href="/login"
-              className="h-9 px-4 rounded-xl text-sm font-medium transition-colors
+              className="h-9 px-4 rounded-xl py-2 text-sm font-medium transition-colors
                 border border-[var(--border)] hover:bg-[var(--surface-2)]"
               style={{ color: "var(--heading)" }}>
               Sign in
