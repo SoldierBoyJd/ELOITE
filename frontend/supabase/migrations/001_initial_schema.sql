@@ -12,21 +12,21 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm"; -- for fuzzy search on names/SKUs
 -- 1. ROLES & PERMISSIONS
 -- ============================================================
 
-CREATE TABLE roles (
+CREATE TABLE IF NOT EXISTS roles (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name        TEXT NOT NULL UNIQUE,         -- owner, admin, finance_manager, inventory_manager, sales_manager, warehouse_staff, auditor
   description TEXT,
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE permissions (
+CREATE TABLE IF NOT EXISTS permissions (
   id     UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   module TEXT NOT NULL,  -- inventory, invoices, payments, gst, users, reports, settings
   action TEXT NOT NULL,  -- read, write, delete
   UNIQUE(module, action)
 );
 
-CREATE TABLE role_permissions (
+CREATE TABLE IF NOT EXISTS role_permissions (
   role_id       UUID REFERENCES roles(id) ON DELETE CASCADE,
   permission_id UUID REFERENCES permissions(id) ON DELETE CASCADE,
   PRIMARY KEY (role_id, permission_id)
@@ -36,7 +36,7 @@ CREATE TABLE role_permissions (
 -- 2. COMPANIES (tenants)
 -- ============================================================
 
-CREATE TABLE companies (
+CREATE TABLE IF NOT EXISTS companies (
   id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name                TEXT NOT NULL,
   gst_number          TEXT,
@@ -59,7 +59,7 @@ CREATE TABLE companies (
 -- 3. USERS
 -- ============================================================
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   supabase_uid  UUID NOT NULL UNIQUE,  -- links to auth.users.id
   company_id    UUID REFERENCES companies(id) ON DELETE CASCADE,
@@ -80,7 +80,7 @@ CREATE INDEX idx_users_company_id   ON users(company_id);
 -- 4. WAREHOUSES
 -- ============================================================
 
-CREATE TABLE warehouses (
+CREATE TABLE IF NOT EXISTS warehouses (
   id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name       TEXT NOT NULL,
@@ -98,14 +98,14 @@ CREATE INDEX idx_warehouses_company_id ON warehouses(company_id);
 -- 5. CATEGORIES & PRODUCTS
 -- ============================================================
 
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
   id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name       TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
   id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id    UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   category_id   UUID REFERENCES categories(id),
@@ -135,7 +135,7 @@ CREATE INDEX idx_products_name_trgm   ON products USING gin(name gin_trgm_ops);
 -- 6. INVENTORY (current stock per warehouse)
 -- ============================================================
 
-CREATE TABLE inventory (
+CREATE TABLE IF NOT EXISTS inventory (
   id                 UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   warehouse_id       UUID NOT NULL REFERENCES warehouses(id) ON DELETE CASCADE,
   product_id         UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
@@ -153,7 +153,7 @@ CREATE INDEX idx_inventory_product   ON inventory(product_id);
 -- 7. STOCK MOVEMENTS (every change is recorded)
 -- ============================================================
 
-CREATE TABLE stock_movements (
+CREATE TABLE IF NOT EXISTS stock_movements (
   id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id     UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   product_id     UUID NOT NULL REFERENCES products(id),
@@ -175,7 +175,7 @@ CREATE INDEX idx_stock_movements_created  ON stock_movements(created_at DESC);
 -- 8. SUPPLIERS & CUSTOMERS
 -- ============================================================
 
-CREATE TABLE suppliers (
+CREATE TABLE IF NOT EXISTS suppliers (
   id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id    UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name          TEXT NOT NULL,
@@ -191,7 +191,7 @@ CREATE TABLE suppliers (
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE customers (
+CREATE TABLE IF NOT EXISTS customers (
   id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id    UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name          TEXT NOT NULL,
@@ -214,7 +214,7 @@ CREATE INDEX idx_customers_company ON customers(company_id);
 -- 9. PURCHASE ORDERS
 -- ============================================================
 
-CREATE TABLE purchase_orders (
+CREATE TABLE IF NOT EXISTS purchase_orders (
   id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id        UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   supplier_id       UUID NOT NULL REFERENCES suppliers(id),
@@ -231,7 +231,7 @@ CREATE TABLE purchase_orders (
   UNIQUE(company_id, po_number)
 );
 
-CREATE TABLE purchase_order_items (
+CREATE TABLE IF NOT EXISTS purchase_order_items (
   id                 UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   purchase_order_id  UUID NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
   product_id         UUID NOT NULL REFERENCES products(id),
@@ -247,7 +247,7 @@ CREATE TABLE purchase_order_items (
 -- 10. INVOICES
 -- ============================================================
 
-CREATE TABLE invoices (
+CREATE TABLE IF NOT EXISTS invoices (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id       UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   invoice_number   TEXT NOT NULL,
@@ -271,7 +271,7 @@ CREATE TABLE invoices (
   UNIQUE(company_id, invoice_number)
 );
 
-CREATE TABLE invoice_items (
+CREATE TABLE IF NOT EXISTS invoice_items (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   invoice_id  UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
   product_id  UUID REFERENCES products(id),
@@ -294,7 +294,7 @@ CREATE INDEX idx_invoices_date       ON invoices(invoice_date DESC);
 -- 11. PAYMENTS
 -- ============================================================
 
-CREATE TABLE payments (
+CREATE TABLE IF NOT EXISTS payments (
   id                    UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id            UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   invoice_id            UUID NOT NULL REFERENCES invoices(id),
@@ -317,7 +317,7 @@ CREATE INDEX idx_payments_invoice  ON payments(invoice_id);
 -- 12. GST RECORDS
 -- ============================================================
 
-CREATE TABLE gst_records (
+CREATE TABLE IF NOT EXISTS gst_records (
   id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id     UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   invoice_id     UUID NOT NULL REFERENCES invoices(id),
@@ -339,7 +339,7 @@ CREATE TABLE gst_records (
 -- 13. FILES / ATTACHMENTS
 -- ============================================================
 
-CREATE TABLE files (
+CREATE TABLE IF NOT EXISTS files (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id  UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   entity_type TEXT NOT NULL,  -- invoice, product, supplier, customer, purchase_order
@@ -356,7 +356,7 @@ CREATE TABLE files (
 -- 14. NOTIFICATIONS
 -- ============================================================
 
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS notifications (
   id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   user_id    UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -376,7 +376,7 @@ CREATE INDEX idx_notifications_company ON notifications(company_id);
 -- 15. AUDIT LOGS (immutable — never update or delete)
 -- ============================================================
 
-CREATE TABLE audit_logs (
+CREATE TABLE IF NOT EXISTS audit_logs (
   id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   user_id    UUID REFERENCES users(id),
@@ -397,7 +397,7 @@ CREATE INDEX idx_audit_logs_user    ON audit_logs(user_id);
 -- 16. AI TABLES (Phase 2 — created now, populated later)
 -- ============================================================
 
-CREATE TABLE ai_alerts (
+CREATE TABLE IF NOT EXISTS ai_alerts (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id  UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   severity    TEXT NOT NULL DEFAULT 'medium',  -- low, medium, high, critical
@@ -411,7 +411,7 @@ CREATE TABLE ai_alerts (
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE demand_forecasts (
+CREATE TABLE IF NOT EXISTS demand_forecasts (
   id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id        UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   product_id        UUID NOT NULL REFERENCES products(id),
@@ -423,7 +423,7 @@ CREATE TABLE demand_forecasts (
   created_at        TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE duplicate_invoice_checks (
+CREATE TABLE IF NOT EXISTS duplicate_invoice_checks (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   company_id  UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   invoice_1   UUID NOT NULL REFERENCES invoices(id),
