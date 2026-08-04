@@ -63,7 +63,7 @@ export default function VerifiedPage() {
           style={{ borderColor: "var(--border)", borderTopColor: "#0F8F83" }} />
 
         {/* Manual fallback */}
-        <Link href="/"
+        <Link href="/dashboard"
           className="inline-flex items-center gap-2 h-11 px-6 rounded-xl text-sm font-semibold
             transition-colors hover:opacity-90"
           style={{ background: "var(--primary)", color: "var(--primary-fg)" }}>

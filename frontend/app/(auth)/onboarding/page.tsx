@@ -74,7 +74,7 @@ function OnboardingForm() {
     }
 
     toast.success(`Welcome to ÉLOITE, ${fullName || businessName}!`);
-    router.push("/");
+    router.push("/dashboard");
     router.refresh();
   };
 
