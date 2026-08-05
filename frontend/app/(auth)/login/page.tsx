@@ -10,7 +10,11 @@ import { toast } from "sonner";
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") ?? "/dashboard";
+  const rawNext = params.get("next") ?? "/dashboard";
+  // Open redirect protection: ensure next is a relative path starting with / and not //
+  const next = (rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.includes(":"))
+    ? rawNext
+    : "/dashboard";
   const errorParam = params.get("error");
 
   const [email, setEmail]           = useState("");

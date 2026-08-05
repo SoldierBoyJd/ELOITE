@@ -15,6 +15,17 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Global security headers for all routes
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+      {
         // Apply no-cache to all dashboard routes so browser never
         // serves a cached page after logout via the back button
         source: "/(dashboard|inventory|invoice|gst|payments|health|ai|forecast|reports|settings|support)/:path*",

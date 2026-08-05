@@ -6,18 +6,12 @@ export async function GET(request: NextRequest) {
     const code = url.searchParams.get("code");
     const siteUrl = url.origin;
 
-    console.log("[callback] url.origin =", siteUrl);
-    console.log("[callback] code present =", !!code);
-
     if (!code) {
         return NextResponse.redirect(`${siteUrl}/login?error=no_code`);
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    console.log("[callback] supabaseUrl present =", !!supabaseUrl);
-    console.log("[callback] supabaseKey present =", !!supabaseKey);
 
     if (!supabaseUrl || !supabaseKey) {
         return NextResponse.redirect(`${siteUrl}/login?error=env_missing`);
@@ -39,18 +33,11 @@ export async function GET(request: NextRequest) {
 
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-    console.log("[callback] exchangeError =", exchangeError?.message ?? "none");
-
     if (exchangeError) {
-        return NextResponse.redirect(`${siteUrl}/login?error=exchange_failed&msg=${encodeURIComponent(exchangeError.message)}`);
+        return NextResponse.redirect(`${siteUrl}/login?error=exchange_failed`);
     }
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    console.log("[callback] user.id =", user?.id ?? "null");
-    console.log("[callback] userError =", userError?.message ?? "none");
-    console.log("[callback] onboarded =", user?.user_metadata?.onboarded ?? "not set");
-    console.log("[callback] cookiesToForward.length =", cookiesToForward.length);
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
         return NextResponse.redirect(`${siteUrl}/login?error=no_user_after_exchange`);
@@ -59,8 +46,6 @@ export async function GET(request: NextRequest) {
     const destination = user.user_metadata?.onboarded
         ? `${siteUrl}/dashboard`
         : `${siteUrl}/onboarding`;
-
-    console.log("[callback] redirecting to =", destination);
 
     const finalResponse = NextResponse.redirect(destination);
     cookiesToForward.forEach(({ name, value, options }) => {

@@ -20,19 +20,35 @@ const PROTECTED_ROUTE_PREFIXES = [
     "/reports", "/settings", "/support",
 ];
 
-// Inject aggressive no-store headers so the browser never puts these pages
-// in bfcache, disk cache, or any intermediary cache.
-function addNoCacheHeaders(response: NextResponse): NextResponse {
-    response.headers.set(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
-    );
-    response.headers.set("Pragma", "no-cache");
-    response.headers.set("Expires", "0");
-    response.headers.set("Surrogate-Control", "no-store");
-    // Tells reverse proxies (nginx, etc.) to never cache
-    response.headers.set("X-Accel-Expires", "0");
+// Inject aggressive no-store headers and security headers
+function applySecurityHeaders(response: NextResponse, isProtected: boolean): NextResponse {
+    if (isProtected) {
+        response.headers.set(
+            "Cache-Control",
+            "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+        );
+        response.headers.set("Pragma", "no-cache");
+        response.headers.set("Expires", "0");
+        response.headers.set("Surrogate-Control", "no-store");
+        response.headers.set("X-Accel-Expires", "0");
+    }
+
+    // Standard security headers (ECC & Production Security Audit)
+    response.headers.set("X-Frame-Options", "DENY");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+    response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    
     return response;
+}
+
+// Helper to sanitize internal redirect URLs
+function sanitizeRedirect(targetPath: string): string {
+    if (targetPath.startsWith("/") && !targetPath.startsWith("//") && !targetPath.includes(":")) {
+        return targetPath;
+    }
+    return "/dashboard";
 }
 
 // Auth pages where an already-logged-in user should be redirected to dashboard
@@ -46,14 +62,12 @@ export async function proxy(request: NextRequest) {
     const isProtected = PROTECTED_ROUTE_PREFIXES.some((p) => pathname.startsWith(p));
 
     if (!supabaseUrl || !supabaseKey) {
-        console.error("Missing Supabase env vars — skipping auth check");
         const resp = NextResponse.next({ request });
-        if (isProtected) addNoCacheHeaders(resp);
-        return resp;
+        return applySecurityHeaders(resp, isProtected);
     }
 
     let supabaseResponse = NextResponse.next({ request });
-    if (isProtected) addNoCacheHeaders(supabaseResponse);
+    applySecurityHeaders(supabaseResponse, isProtected);
 
     const supabase = createServerClient(supabaseUrl, supabaseKey, {
         cookies: {
@@ -61,7 +75,7 @@ export async function proxy(request: NextRequest) {
             setAll(cookiesToSet) {
                 cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
                 supabaseResponse = NextResponse.next({ request });
-                if (isProtected) addNoCacheHeaders(supabaseResponse);
+                applySecurityHeaders(supabaseResponse, isProtected);
                 cookiesToSet.forEach(({ name, value, options }) =>
                     supabaseResponse.cookies.set(name, value, options)
                 );
@@ -89,7 +103,7 @@ export async function proxy(request: NextRequest) {
     if (!user && !isPublic) {
         const url = request.nextUrl.clone();
         url.pathname = "/login";
-        url.searchParams.set("next", pathname);
+        url.searchParams.set("next", sanitizeRedirect(pathname));
         const redirectResponse = NextResponse.redirect(url);
 
         // Forward any cookie updates from the Supabase client
@@ -97,7 +111,7 @@ export async function proxy(request: NextRequest) {
             redirectResponse.cookies.set(cookie.name, cookie.value);
         });
 
-        return redirectResponse;
+        return applySecurityHeaders(redirectResponse, true);
     }
 
     // ── Authenticated on auth page → redirect to dashboard ──
@@ -111,14 +125,15 @@ export async function proxy(request: NextRequest) {
             redirectResponse.cookies.set(cookie.name, cookie.value);
         });
 
-        return redirectResponse;
+        return applySecurityHeaders(redirectResponse, true);
     }
 
     // ── Onboarded user on /onboarding → dashboard ──
     if (user && pathname === "/onboarding" && user.user_metadata?.onboarded) {
         const url = request.nextUrl.clone();
         url.pathname = "/dashboard";
-        return NextResponse.redirect(url);
+        const redirectResponse = NextResponse.redirect(url);
+        return applySecurityHeaders(redirectResponse, true);
     }
 
     // ── Authenticated but not onboarded → force onboarding ──
@@ -127,7 +142,8 @@ export async function proxy(request: NextRequest) {
     if (user && !skipOnboarding && !user.user_metadata?.onboarded) {
         const url = request.nextUrl.clone();
         url.pathname = "/onboarding";
-        return NextResponse.redirect(url);
+        const redirectResponse = NextResponse.redirect(url);
+        return applySecurityHeaders(redirectResponse, true);
     }
 
     return supabaseResponse;
