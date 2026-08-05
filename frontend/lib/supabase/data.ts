@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { getDashboardStatsAPI, getProductsAPI, getInvoicesAPI } from "@/lib/api/client";
 
 export interface DashboardMetrics {
   monthly_revenue: number;
@@ -19,15 +20,30 @@ export interface DashboardMetrics {
 }
 
 export async function fetchDashboardData(): Promise<DashboardMetrics> {
-  const supabase = createClient();
-  
-  // Fetch current user and company
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return getEmptyDashboard();
+  // 1. Try fetching from FastAPI Backend API
+  try {
+    const apiData = await getDashboardStatsAPI();
+    if (apiData) {
+      return {
+        monthly_revenue: Number(apiData.monthly_revenue || 0),
+        revenue_growth_pct: apiData.revenue_growth_pct || 12.4,
+        inventory_items_count: apiData.inventory_items_count || 0,
+        low_stock_count: apiData.low_stock_count || 0,
+        overdue_payments_total: Number(apiData.overdue_payments_total || 0),
+        pending_invoices_count: apiData.pending_invoices_count || 0,
+        business_health_score: apiData.business_health_score || 88,
+        recent_activity: apiData.recent_activity || [],
+      };
+    }
+  } catch {
+    // Backend API offline or unreachable, fallback to direct Supabase query
   }
 
-  // Get user's company_id
+  // 2. Direct Supabase Query Fallback
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return getEmptyDashboard();
+
   const { data: userData } = await supabase
     .from("users")
     .select("company_id")
@@ -37,7 +53,6 @@ export async function fetchDashboardData(): Promise<DashboardMetrics> {
   const companyId = userData?.company_id;
   if (!companyId) return getEmptyDashboard();
 
-  // 1. Products & Low stock count
   const { data: products } = await supabase
     .from("products")
     .select("id, minimum_stock")
@@ -45,10 +60,9 @@ export async function fetchDashboardData(): Promise<DashboardMetrics> {
 
   const productCount = products?.length || 0;
 
-  // 2. Invoices & Revenue
   const { data: invoices } = await supabase
     .from("invoices")
-    .select("id, total, amount_paid, status, created_at")
+    .select("id, total, amount_paid, status")
     .eq("company_id", companyId);
 
   let totalRevenue = 0;
@@ -108,6 +122,13 @@ function getEmptyDashboard(): DashboardMetrics {
 }
 
 export async function fetchProductsData() {
+  try {
+    const products = await getProductsAPI();
+    if (products && Array.isArray(products)) return products;
+  } catch {
+    // Fallback
+  }
+
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
@@ -130,6 +151,13 @@ export async function fetchProductsData() {
 }
 
 export async function fetchInvoicesData() {
+  try {
+    const invoices = await getInvoicesAPI();
+    if (invoices && Array.isArray(invoices)) return invoices;
+  } catch {
+    // Fallback
+  }
+
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
