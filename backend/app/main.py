@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api import dashboard, products, invoices
+from app.api import (
+    dashboard, products, invoices, inventory,
+    payments, suppliers, customers, gst, ai
+)
 
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="ÉLOITE AI Business Intelligence Backend API",
+    description="ÉLOITE AI Business Intelligence Backend API — Rules, ML & LLM Architecture",
 )
 
 # CORS configuration
@@ -18,10 +21,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include routers under /api/v1
 app.include_router(dashboard.router, prefix="/api/v1")
-app.include_router(products.router, prefix="/api/v1")
-app.include_router(invoices.router, prefix="/api/v1")
+app.include_router(products.router,  prefix="/api/v1")
+app.include_router(invoices.router,  prefix="/api/v1")
+app.include_router(inventory.router, prefix="/api/v1")
+app.include_router(payments.router,  prefix="/api/v1")
+app.include_router(suppliers.router, prefix="/api/v1")
+app.include_router(customers.router, prefix="/api/v1")
+app.include_router(gst.router,       prefix="/api/v1")
+app.include_router(ai.router,        prefix="/api/v1")
 
 
 @app.get("/health", tags=["Health"])

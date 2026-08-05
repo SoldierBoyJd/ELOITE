@@ -1,23 +1,49 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
-from uuid import UUID
 from decimal import Decimal
 from datetime import date, datetime
+import uuid
 
 
-class PaymentCreate(BaseModel):
-    invoice_id: UUID
-    payment_number: str
+class PaymentBase(BaseModel):
+    invoice_id: uuid.UUID
     amount: Decimal
     payment_date: date
-    payment_mode: str  # cash, bank_transfer, upi, cheque, card
-    reference_number: Optional[str] = None
+    mode: str              # UPI, Bank, Cash, Cheque, NEFT, RTGS
+    transaction_reference: Optional[str] = None
+    bank_name: Optional[str] = None
+    cheque_number: Optional[str] = None
     notes: Optional[str] = None
 
 
-class PaymentResponse(PaymentCreate):
-    id: UUID
-    company_id: UUID
-    created_at: datetime
+class PaymentCreate(PaymentBase):
+    pass
 
-    model_config = {"from_attributes": True}
+
+class PaymentUpdate(BaseModel):
+    status: Optional[str] = None
+    transaction_reference: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class PaymentResponse(PaymentBase):
+    id: uuid.UUID
+    company_id: uuid.UUID
+    status: str
+    created_at: datetime
+    invoice_number: Optional[str] = None
+    vendor_or_customer: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OutstandingInvoice(BaseModel):
+    invoice_id: uuid.UUID
+    invoice_number: str
+    entity_name: str
+    invoice_date: date
+    due_date: Optional[date]
+    total: Decimal
+    amount_paid: Decimal
+    outstanding: Decimal
+    days_overdue: int
+    status: str

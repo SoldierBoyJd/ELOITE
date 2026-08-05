@@ -1,8 +1,22 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
-from uuid import UUID
 from decimal import Decimal
 from datetime import datetime
+import uuid
+
+
+class CategoryBase(BaseModel):
+    name: str
+
+
+class CategoryCreate(CategoryBase):
+    pass
+
+
+class CategoryResponse(CategoryBase):
+    id: uuid.UUID
+    company_id: uuid.UUID
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProductBase(BaseModel):
@@ -13,12 +27,11 @@ class ProductBase(BaseModel):
     hsn_code: Optional[str] = None
     gst_rate: Decimal = Decimal("18.00")
     unit: str = "pcs"
-    cost_price: Decimal = Decimal("0.00")
-    selling_price: Decimal = Decimal("0.00")
+    cost_price: Decimal = Decimal("0")
+    selling_price: Decimal = Decimal("0")
     minimum_stock: int = 0
     maximum_stock: Optional[int] = None
-    category_id: Optional[UUID] = None
-    image_url: Optional[str] = None
+    category_id: Optional[uuid.UUID] = None
 
 
 class ProductCreate(ProductBase):
@@ -37,16 +50,16 @@ class ProductUpdate(BaseModel):
     selling_price: Optional[Decimal] = None
     minimum_stock: Optional[int] = None
     maximum_stock: Optional[int] = None
-    category_id: Optional[UUID] = None
-    image_url: Optional[str] = None
+    category_id: Optional[uuid.UUID] = None
     is_active: Optional[bool] = None
 
 
 class ProductResponse(ProductBase):
-    id: UUID
-    company_id: UUID
+    id: uuid.UUID
+    company_id: uuid.UUID
     is_active: bool
+    image_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-
-    model_config = {"from_attributes": True}
+    category: Optional[CategoryResponse] = None
+    model_config = ConfigDict(from_attributes=True)
