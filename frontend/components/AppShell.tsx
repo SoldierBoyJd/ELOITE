@@ -56,8 +56,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         supabase.auth.getSession().then(({ data: { session: current } }) => {
           if (!current) {
             setUser(null);
-            // Small delay so any in-flight requests complete
-            setTimeout(() => { window.location.href = "/login"; }, 100);
+            // Replace current history entry so back-button can't return here
+            window.location.replace("/login");
           }
           // Session still exists — spurious event, ignore
         });
@@ -82,20 +82,55 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       }
     };
 
+    // ── Multi-tab logout detection ────────────────────────────────────────
+    // When user switches back to this tab after logging out in another tab,
+    // re-verify the session immediately.
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (!session) {
+            window.location.replace("/login");
+          } else {
+            setUser(session.user);
+          }
+        });
+      }
+    };
+
     window.addEventListener("pageshow", handlePageShow);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       subscription.unsubscribe();
       window.removeEventListener("pageshow", handlePageShow);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
-  /* ── Logout ── */
+  /* ── Logout (Instagram-style) ── */
   const handleLogout = async () => {
+    // 1. Sign out from Supabase (clears server-side session + cookies)
     await supabase.auth.signOut();
+
+    // 2. Purge any Supabase tokens still in localStorage
+    //    (belt-and-suspenders — signOut should clear these, but just in case)
+    try {
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("sb-") || key.includes("supabase")) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch {
+      // localStorage access can fail in some contexts — safe to ignore
+    }
+
     toast.success("Signed out successfully");
-    // Full page navigation ensures middleware re-evaluates session
-    window.location.href = "/login";
+
+    // 3. Replace the entire history entry so the back button cannot
+    //    return to any dashboard page. This is the Instagram pattern:
+    //    after logout, hitting back just shows /login again.
+    window.history.replaceState(null, "", "/login");
+    window.location.replace("/login");
   };
 
   /* ── User display helpers ── */
