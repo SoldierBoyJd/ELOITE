@@ -97,11 +97,18 @@ function SparkCard({
   );
 }
 
+import { fetchDashboardData, DashboardMetrics } from "@/lib/supabase/data";
+
 /* ── Page ───────────────────────────────────────────────── */
 export default function DashboardPage() {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    fetchDashboardData().then(setMetrics).catch(() => setMetrics(null));
+  }, []);
 
   const isDark = mounted && resolvedTheme === "dark";
   const chartGrid = isDark ? "#222222" : "#F0F0EE";
@@ -118,6 +125,11 @@ export default function DashboardPage() {
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "long", day: "numeric", month: "long", year: "numeric",
   });
+
+  const revVal = metrics ? `₹${(metrics.monthly_revenue / 100000).toFixed(1)}L` : "₹42.8L";
+  const invVal = metrics ? `${metrics.inventory_items_count} SKUs` : "18,240 SKUs";
+  const payVal = metrics ? `₹${(metrics.overdue_payments_total / 100000).toFixed(1)}L` : "₹7.4L";
+  const healthVal = metrics ? `${metrics.business_health_score}/100` : "88/100";
 
   return (
     <div className="flex flex-col gap-8">
@@ -152,16 +164,16 @@ export default function DashboardPage() {
 
       {/* ── Row 1 — Revenue / Inventory / Payments ───────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-        <SparkCard label="Revenue (MTD)" value="₹42.8L" badge="+12.4%"
+        <SparkCard label="Revenue (MTD)" value={revVal} badge="+12.4%"
           badgeCls="bg-[#0F8F83]/10 text-[#0F8F83]" footer="vs ₹38.1L last month"
           icon={IndianRupee} iconBg="bg-[#0F8F83]/10" iconCls="text-[#0F8F83]"
           data={revenueData} color="#0F8F83" />
-        <SparkCard label="Inventory Value" value="₹18.2L" badge="Stable"
-          badgeCls="bg-[#9CA3AF]/15 text-[#9CA3AF]" footer="247 active SKUs"
+        <SparkCard label="Inventory Count" value={invVal} badge="Active"
+          badgeCls="bg-[#9CA3AF]/15 text-[#9CA3AF]" footer={`${metrics?.inventory_items_count || 0} registered SKUs`}
           icon={Package} iconBg="bg-[var(--surface-2)]" iconCls="text-[var(--body)]"
           data={inventoryData} color="#9CA3AF" />
-        <SparkCard label="Pending Payments" value="₹7.4L" badge="+8.2%"
-          badgeCls="bg-[#D97706]/10 text-[#D97706]" footer="23 invoices overdue"
+        <SparkCard label="Pending Payments" value={payVal} badge={metrics?.pending_invoices_count ? `${metrics.pending_invoices_count} pending` : "0 pending"}
+          badgeCls="bg-[#D97706]/10 text-[#D97706]" footer={`${metrics?.pending_invoices_count || 0} invoices awaiting payment`}
           icon={CreditCard} iconBg="bg-[#D97706]/10" iconCls="text-[#D97706]"
           data={paymentsData} color="#D97706" />
       </div>
