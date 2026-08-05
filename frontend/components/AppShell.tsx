@@ -64,7 +64,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // ── bfcache fix ──────────────────────────────────────────────────────────
+    // Browser back-forward cache restores a full page snapshot in memory,
+    // bypassing server-side auth checks. When pageshow fires with
+    // persisted=true, we re-verify the session and redirect if it's gone.
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (!session) {
+            // Session gone — user logged out in another tab or explicitly
+            window.location.replace("/login");
+          } else {
+            // Session still valid — refresh user state in case it changed
+            setUser(session.user);
+          }
+        });
+      }
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("pageshow", handlePageShow);
+    };
   }, []);
 
   /* ── Logout ── */
