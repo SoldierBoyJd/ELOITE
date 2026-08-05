@@ -36,50 +36,62 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser]               = useState<SupabaseUser | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
+  // ── Auth gate: nothing renders until we confirm a valid session ──
+  const [authChecked, setAuthChecked] = useState(false);
 
   const close = () => setSidebarOpen(false);
 
+  // ── Shared auth verification (uses getUser = server roundtrip, not stale cache) ──
+  const verifyAuth = async () => {
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        // No valid session — kick to login immediately
+        window.location.replace("/login");
+        return false;
+      }
+      setUser(currentUser);
+      setAuthChecked(true);
+      return true;
+    } catch {
+      window.location.replace("/login");
+      return false;
+    }
+  };
+
   /* ── Load user session + handle expiry ── */
   useEffect(() => {
-    // Use getSession for instant load (reads from localStorage cookie)
-    // Then verify with getUser for security
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+    // Initial auth check — server-verified
+    verifyAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
         setUser(session?.user ?? null);
+        setAuthChecked(true);
       } else if (event === "SIGNED_OUT") {
-        // Verify the session is truly gone before redirecting
-        // (browser back/forward can fire spurious SIGNED_OUT events)
-        supabase.auth.getSession().then(({ data: { session: current } }) => {
-          if (!current) {
-            setUser(null);
-            // Replace current history entry so back-button can't return here
-            window.location.replace("/login");
-          }
-          // Session still exists — spurious event, ignore
-        });
+        setUser(null);
+        setAuthChecked(false);
+        window.location.replace("/login");
       }
     });
 
     // ── bfcache fix ──────────────────────────────────────────────────────────
     // Browser back-forward cache restores a full page snapshot in memory,
     // bypassing server-side auth checks. When pageshow fires with
-    // persisted=true, we re-verify the session and redirect if it's gone.
+    // persisted=true, we hide everything and re-verify via server call.
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (!session) {
-            // Session gone — user logged out in another tab or explicitly
-            window.location.replace("/login");
-          } else {
-            // Session still valid — refresh user state in case it changed
-            setUser(session.user);
-          }
-        });
+        // Immediately hide content until re-verified
+        setAuthChecked(false);
+        verifyAuth();
       }
+    };
+
+    // ── Back/Forward button detection ────────────────────────────────────
+    // popstate fires when the user hits back/forward — re-verify auth
+    const handlePopState = () => {
+      setAuthChecked(false);
+      verifyAuth();
     };
 
     // ── Multi-tab logout detection ────────────────────────────────────────
@@ -87,51 +99,68 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     // re-verify the session immediately.
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (!session) {
-            window.location.replace("/login");
-          } else {
-            setUser(session.user);
-          }
-        });
+        verifyAuth();
       }
     };
 
     window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("popstate", handlePopState);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       subscription.unsubscribe();
       window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("popstate", handlePopState);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /* ── Logout (Instagram-style) ── */
   const handleLogout = async () => {
-    // 1. Sign out from Supabase (clears server-side session + cookies)
+    // 1. Immediately hide all content
+    setAuthChecked(false);
+    setUser(null);
+
+    // 2. Sign out from Supabase (clears server-side session + cookies)
     await supabase.auth.signOut();
 
-    // 2. Purge any Supabase tokens still in localStorage
-    //    (belt-and-suspenders — signOut should clear these, but just in case)
+    // 3. Nuke ALL Supabase tokens from localStorage AND sessionStorage
     try {
-      Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith("sb-") || key.includes("supabase")) {
-          localStorage.removeItem(key);
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith("sb-") || key.includes("supabase") || key.includes("auth"))) {
+          keysToRemove.push(key);
         }
-      });
+      }
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+      // Also clear sessionStorage
+      sessionStorage.clear();
     } catch {
-      // localStorage access can fail in some contexts — safe to ignore
+      // Safe to ignore
     }
 
     toast.success("Signed out successfully");
 
-    // 3. Replace the entire history entry so the back button cannot
+    // 4. Replace the entire history entry so the back button cannot
     //    return to any dashboard page. This is the Instagram pattern:
     //    after logout, hitting back just shows /login again.
     window.history.replaceState(null, "", "/login");
     window.location.replace("/login");
   };
+
+  /* ── Auth gate: show loading spinner until verified ── */
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[var(--border)] border-t-[var(--primary)] rounded-full animate-spin" />
+          <span className="text-xs text-[var(--muted)]">Verifying session…</span>
+        </div>
+      </div>
+    );
+  }
 
   /* ── User display helpers ── */
   const displayName = user?.user_metadata?.full_name
