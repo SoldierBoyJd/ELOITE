@@ -101,8 +101,7 @@ export default function LandingPage() {
               style={{ background: "var(--primary)", color: "var(--primary-fg)" }}>
               Get started free
               <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+            </Link>          </div>
         </div>
       </nav>
 
@@ -129,7 +128,7 @@ export default function LandingPage() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16">
-          <Link href="/signup"
+          <Link href="/login"
             className="w-full sm:w-auto h-12 px-8 rounded-xl text-base font-semibold
               flex items-center justify-center gap-2 transition-colors hover:opacity-90"
             style={{ background: "var(--primary)", color: "var(--primary-fg)" }}>

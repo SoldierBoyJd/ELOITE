@@ -10,7 +10,7 @@ import { toast } from "sonner";
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") ?? "/";
+  const next = params.get("next") ?? "/dashboard";
   const errorParam = params.get("error");
 
   const [email, setEmail]           = useState("");
@@ -18,11 +18,11 @@ function LoginForm() {
   const [showPass, setShowPass]     = useState(false);
   const [loading, setLoading]       = useState(false);
   const [googleLoading, setGL]      = useState(false);
-  const [error, setError]           = useState(
+  const [error, setError] = useState(
     errorParam ? "Authentication failed. Please try again." : ""
   );
 
-  const supabase = createClient();
+  // Remove top-level supabase instance — created inside handlers only
 
   // Show toast for URL error params
   useEffect(() => {

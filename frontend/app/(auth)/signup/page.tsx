@@ -1,27 +1,40 @@
 "use client";
 import { Suspense, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Boxes, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
+import { Boxes, Eye, EyeOff, AlertCircle, CheckCircle, Mail } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
+const GOOGLE_ICON = (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
+    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
+    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
+    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
+  </svg>
+);
+
 function SignupForm() {
-  const [email, setEmail]         = useState("");
-  const [password, setPassword]   = useState("");
-  const [fullName, setFullName]   = useState("");
-  const [showPass, setShowPass]   = useState(false);
-  const [loading, setLoading]     = useState(false);
-  const [googleLoading, setGL]    = useState(false);
-  const [error, setError]         = useState("");
-  const [success, setSuccess]     = useState(false);
+  const [email, setEmail]       = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [glLoading, setGL]      = useState(false);
+  const [error, setError]       = useState("");
+  const [success, setSuccess]   = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
     const supabase = createClient();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? location.origin;
-    const { error } = await supabase.auth.signUp({
+
+    // Check if email already exists by attempting sign-in first
+    // Supabase returns a specific error code for existing users
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -29,7 +42,30 @@ function SignupForm() {
         emailRedirectTo: `${siteUrl}/auth/callback`,
       },
     });
-    if (error) { setError(error.message); setLoading(false); return; }
+
+    if (signUpError) {
+      // Map common Supabase error messages to user-friendly ones
+      if (
+        signUpError.message.includes("already registered") ||
+        signUpError.message.includes("User already registered") ||
+        signUpError.message.includes("already been registered")
+      ) {
+        setError("An account with this email already exists. Please sign in instead.");
+      } else {
+        setError(signUpError.message);
+      }
+      setLoading(false);
+      return;
+    }
+
+    // Supabase returns an existing unconfirmed user with identities=[]
+    // This means the email is already registered but not confirmed
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      setError("An account with this email already exists. Please sign in or reset your password.");
+      setLoading(false);
+      return;
+    }
+
     toast.success("Account created! Check your email to confirm.");
     setSuccess(true);
     setLoading(false);
@@ -52,23 +88,30 @@ function SignupForm() {
     text-[var(--heading)] placeholder:text-[var(--disabled)]
     focus:ring-2 focus:ring-[var(--primary)]/15 focus:border-[var(--primary)]/30`;
 
+  /* ── Email confirmation sent ── */
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4"
         style={{ background: "var(--bg)" }}>
         <div className="w-full max-w-md text-center">
           <div className="w-16 h-16 rounded-2xl bg-[#0F8F83]/10 flex items-center justify-center mx-auto mb-5">
-            <CheckCircle className="w-8 h-8 text-[#0F8F83]" />
+            <Mail className="w-8 h-8 text-[#0F8F83]" />
           </div>
           <h1 className="text-xl font-bold mb-2" style={{ color: "var(--heading)" }}>
-            Check your email
+            Confirm your email
           </h1>
-          <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--muted)" }}>
-            We sent a confirmation link to{" "}
-            <span className="font-semibold" style={{ color: "var(--heading)" }}>{email}</span>.
-            Click the link to activate your account.
+          <p className="text-sm leading-relaxed mb-2" style={{ color: "var(--muted)" }}>
+            We sent a confirmation link to
           </p>
-          <Link href="/login" className="text-sm font-semibold hover:opacity-70 transition-colors"
+          <p className="text-sm font-semibold mb-6" style={{ color: "var(--heading)" }}>
+            {email}
+          </p>
+          <p className="text-xs mb-8 leading-relaxed" style={{ color: "var(--muted)" }}>
+            Click the link in the email to activate your account.
+            The link expires in 24 hours. Check your spam folder if you don&apos;t see it.
+          </p>
+          <Link href="/login"
+            className="text-sm font-semibold hover:opacity-70 transition-colors"
             style={{ color: "var(--heading)" }}>
             ← Back to sign in
           </Link>
@@ -109,28 +152,30 @@ function SignupForm() {
             <div className="flex items-start gap-2.5 rounded-xl p-3.5 mb-5
               border border-[#DC2626]/20" style={{ background: "rgba(220,38,38,.06)" }}>
               <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" />
-              <p className="text-xs text-[#DC2626] leading-relaxed">{error}</p>
+              <div>
+                <p className="text-xs text-[#DC2626] leading-relaxed">{error}</p>
+                {error.includes("already exists") && (
+                  <Link href="/login"
+                    className="text-xs font-semibold text-[#DC2626] underline mt-1 block hover:opacity-70">
+                    Sign in instead →
+                  </Link>
+                )}
+              </div>
             </div>
           )}
 
           {/* Google */}
-          <button onClick={handleGoogle} disabled={googleLoading}
+          <button onClick={handleGoogle} disabled={glLoading}
             className="w-full h-11 rounded-xl border border-[var(--border)] text-sm font-medium
               flex items-center justify-center gap-3 transition-colors hover:bg-[var(--surface-2)]
               disabled:opacity-50 disabled:cursor-not-allowed mb-5"
             style={{ background: "var(--surface)", color: "var(--heading)" }}>
-            {googleLoading
+            {glLoading
               ? <div className="w-4 h-4 border-2 border-[var(--border)] border-t-[var(--primary)] rounded-full animate-spin" />
-              : <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
-                  <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
-                  <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
-                  <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
-                </svg>}
-            {googleLoading ? "Redirecting…" : "Continue with Google"}
+              : GOOGLE_ICON}
+            {glLoading ? "Redirecting…" : "Continue with Google"}
           </button>
 
-          {/* Divider */}
           <div className="flex items-center gap-3 mb-5">
             <div className="flex-1 h-px bg-[var(--border)]" />
             <span className="text-xs font-medium text-[var(--disabled)]">or</span>
@@ -143,13 +188,11 @@ function SignupForm() {
               <input type="text" value={fullName} onChange={e => setFullName(e.target.value)}
                 placeholder="Rajesh Sharma" required autoComplete="name" className={input} />
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold" style={{ color: "var(--body)" }}>Email address</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="you@company.com" required autoComplete="email" className={input} />
             </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold" style={{ color: "var(--body)" }}>Password</label>
               <div className="relative">
