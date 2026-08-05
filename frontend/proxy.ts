@@ -1,30 +1,45 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Dashboard routes that must never be cached
+const PROTECTED_ROUTE_PREFIXES = [
+    "/dashboard", "/inventory", "/invoice", "/gst",
+    "/payments", "/health", "/ai", "/forecast",
+    "/reports", "/settings", "/support",
+];
+
+// Inject no-store headers so the browser never puts these pages in bfcache
+function addNoCacheHeaders(response: NextResponse): NextResponse {
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+    return response;
+}
+
 export async function proxy(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const { pathname } = request.nextUrl;
 
-    // If env vars are missing, allow the request through
-    // (should never happen in production — indicates misconfiguration)
+    const isProtected = PROTECTED_ROUTE_PREFIXES.some((p) => pathname.startsWith(p));
+
     if (!supabaseUrl || !supabaseKey) {
         console.error("Missing Supabase env vars — skipping auth check");
-        return NextResponse.next({ request });
+        const resp = NextResponse.next({ request });
+        if (isProtected) addNoCacheHeaders(resp);
+        return resp;
     }
 
     let supabaseResponse = NextResponse.next({ request });
+    if (isProtected) addNoCacheHeaders(supabaseResponse);
 
     const supabase = createServerClient(supabaseUrl, supabaseKey, {
         cookies: {
-            getAll() {
-                return request.cookies.getAll();
-            },
+            getAll() { return request.cookies.getAll(); },
             setAll(cookiesToSet) {
-                cookiesToSet.forEach(({ name, value }) =>
-                    request.cookies.set(name, value)
-                );
+                cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
                 supabaseResponse = NextResponse.next({ request });
+                if (isProtected) addNoCacheHeaders(supabaseResponse);
                 cookiesToSet.forEach(({ name, value, options }) =>
                     supabaseResponse.cookies.set(name, value, options)
                 );
@@ -32,31 +47,23 @@ export async function proxy(request: NextRequest) {
         },
     });
 
-    // Refresh session
     let user = null;
     try {
         const { data } = await supabase.auth.getUser();
         user = data.user;
     } catch {
-        // If auth fails, treat as unauthenticated
         user = null;
     }
 
-    // Routes that don't require auth
     const publicRoutes = [
-        "/",
-        "/login",
-        "/signup",
-        "/auth/callback",
-        "/auth/confirm",
-        "/forgot-password",
-        "/reset-password",
-        "/verified",
-        "/onboarding",
+        "/", "/login", "/signup",
+        "/auth/callback", "/auth/confirm",
+        "/forgot-password", "/reset-password",
+        "/verified", "/onboarding",
     ];
     const isPublic = publicRoutes.some((r) => pathname.startsWith(r));
 
-    // Redirect unauthenticated users to /login
+    // Unauthenticated → redirect to login
     if (!user && !isPublic) {
         const url = request.nextUrl.clone();
         url.pathname = "/login";
@@ -64,25 +71,24 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
-    // Redirect authenticated users away from login/signup
+    // Authenticated + on login/signup → go to dashboard
     if (user && (pathname === "/login" || pathname === "/signup")) {
         const url = request.nextUrl.clone();
         url.pathname = "/dashboard";
         return NextResponse.redirect(url);
     }
 
-    // Redirect already-onboarded users away from onboarding
+    // Onboarded user on onboarding → dashboard
     if (user && pathname === "/onboarding" && user.user_metadata?.onboarded) {
         const url = request.nextUrl.clone();
         url.pathname = "/dashboard";
         return NextResponse.redirect(url);
     }
 
-    // Redirect non-onboarded authenticated users to /onboarding
-    const skipOnboardingCheck = ["/onboarding", "/verified", "/auth", "/reset-password"].some(
-        (r) => pathname.startsWith(r)
-    );
-    if (user && !skipOnboardingCheck && !user.user_metadata?.onboarded) {
+    // Authenticated but not onboarded → onboarding
+    const skipOnboarding = ["/onboarding", "/verified", "/auth", "/reset-password"]
+        .some((r) => pathname.startsWith(r));
+    if (user && !skipOnboarding && !user.user_metadata?.onboarded) {
         const url = request.nextUrl.clone();
         url.pathname = "/onboarding";
         return NextResponse.redirect(url);
