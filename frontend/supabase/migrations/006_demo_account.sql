@@ -111,11 +111,11 @@ BEGIN
   RETURNING id INTO inv_2;
 
   -- 8. Payments
-  INSERT INTO payments (company_id, invoice_id, payment_number, amount, payment_date, payment_mode, reference_number, notes)
-  VALUES (cid, inv_1, 'PAY-2024-001', 44100, CURRENT_DATE - INTERVAL '8 days', 'bank_transfer', 'NEFT998234', 'Full payment for INV-2024-001');
+  INSERT INTO payments (company_id, invoice_id, amount, payment_date, mode, transaction_reference, notes)
+  VALUES (cid, inv_1, 44100, CURRENT_DATE - INTERVAL '8 days', 'NEFT', 'NEFT998234', 'Full payment for INV-2024-001');
 
-  INSERT INTO payments (company_id, invoice_id, payment_number, amount, payment_date, payment_mode, reference_number, notes)
-  VALUES (cid, inv_2, 'PAY-2024-002', 10000, CURRENT_DATE - INTERVAL '3 days', 'upi', 'UPI772615', 'Advance payment for INV-2024-002');
+  INSERT INTO payments (company_id, invoice_id, amount, payment_date, mode, transaction_reference, notes)
+  VALUES (cid, inv_2, 10000, CURRENT_DATE - INTERVAL '3 days', 'UPI', 'UPI772615', 'Advance payment for INV-2024-002');
 
   RAISE NOTICE 'Demo company created and seeded successfully with ID: %', cid;
 END;
