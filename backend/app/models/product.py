@@ -1,65 +1,35 @@
-from __future__ import annotations
-
-import uuid
-from typing import Optional
-
-from sqlalchemy import Boolean, ForeignKey, Integer, Numeric, Text, UniqueConstraint
+from sqlalchemy import Column, String, Text, Numeric, Integer, Boolean, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import relationship
+from app.database.base import Base, UUIDMixin, TimestampMixin
 
-from app.database.base import Base, TimestampMixin, UUIDMixin
 
-
-class Category(UUIDMixin, Base):
+class Category(Base, UUIDMixin):
     __tablename__ = "categories"
-
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("companies.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    name: Mapped[str] = mapped_column(Text, nullable=False)
-
-    products: Mapped[list["Product"]] = relationship(
-        "Product", back_populates="category", lazy="noload"
-    )
-
-    def __repr__(self) -> str:
-        return f"<Category {self.name!r}>"
+    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
+    name       = Column(String(100), nullable=False)
+    products   = relationship("Product", back_populates="category", lazy="select")
 
 
-class Product(UUIDMixin, TimestampMixin, Base):
+class Product(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "products"
-    __table_args__ = (
-        UniqueConstraint("company_id", "sku", name="uq_products_company_sku"),
-    )
 
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("companies.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    category_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("categories.id"), nullable=True
-    )
-    sku: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    barcode: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    name: Mapped[str] = mapped_column(Text, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    hsn_code: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    gst_rate: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False, default=18)
-    unit: Mapped[str] = mapped_column(Text, nullable=False, default="pcs")
-    cost_price: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
-    selling_price: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
-    minimum_stock: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    maximum_stock: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    image_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    company_id    = Column(UUID(as_uuid=True), ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
+    category_id   = Column(UUID(as_uuid=True), ForeignKey("categories.id"))
+    sku           = Column(String(100))
+    barcode       = Column(String(100))
+    name          = Column(String(255), nullable=False)
+    description   = Column(Text)
+    hsn_code      = Column(String(20))
+    gst_rate      = Column(Numeric(5, 2), default=18)
+    unit          = Column(String(20), default="pcs")
+    cost_price    = Column(Numeric(12, 2), default=0)
+    selling_price = Column(Numeric(12, 2), default=0)
+    minimum_stock = Column(Integer, default=0)
+    maximum_stock = Column(Integer)
+    image_url     = Column(Text)
+    is_active     = Column(Boolean, default=True)
 
-    category: Mapped[Optional["Category"]] = relationship("Category", back_populates="products")
-    inventory_items: Mapped[list["Inventory"]] = relationship("Inventory", back_populates="product", lazy="noload")  # type: ignore[name-defined]
-
-    def __repr__(self) -> str:
-        return f"<Product id={self.id} name={self.name!r} sku={self.sku!r}>"
+    company   = relationship("Company", back_populates="products")
+    category  = relationship("Category", back_populates="products")
+    inventory = relationship("Inventory", back_populates="product", lazy="select")
