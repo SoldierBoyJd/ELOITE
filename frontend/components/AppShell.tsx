@@ -41,18 +41,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   /* ── Load user session + handle expiry ── */
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
+    // Use getSession for instant load (reads from localStorage cookie)
+    // Then verify with getUser for security
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED" && !session) {
-        setUser(null);
-        toast.error("Your session has expired. Please sign in again.");
-        window.location.href = "/login";
-        return;
-      }
-      if (event === "TOKEN_REFRESHED" || event === "SIGNED_IN") {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
         setUser(session?.user ?? null);
+      } else if (event === "SIGNED_OUT") {
+        // Verify the session is truly gone before redirecting
+        // (browser back/forward can fire spurious SIGNED_OUT events)
+        supabase.auth.getSession().then(({ data: { session: current } }) => {
+          if (!current) {
+            setUser(null);
+            // Small delay so any in-flight requests complete
+            setTimeout(() => { window.location.href = "/login"; }, 100);
+          }
+          // Session still exists — spurious event, ignore
+        });
       }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
