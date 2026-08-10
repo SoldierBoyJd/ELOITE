@@ -83,3 +83,14 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border-2);
 }
+
+/* ── Animated logo video ────────────────────────────────── */
+/* Light mode: render as dark silhouette */
+.logo-video {
+  filter: brightness(0);
+}
+
+/* Dark mode: brighten so it reads against dark bg */
+.dark .logo-video {
+  filter: brightness(10);
+}

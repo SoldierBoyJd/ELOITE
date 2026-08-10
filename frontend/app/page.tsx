@@ -10,60 +10,60 @@ const features = [
   {
     icon: Package,
     title: "Inventory Intelligence",
-    desc: "AI-powered reorder predictions, 14-day demand forecasting, and real-time stock alerts before you run out.",
+    desc: "AI-powered reorder predictions, 30-day demand forecasting, and real-time stock alerts — reducing overstock by up to 40%.",
   },
   {
     icon: FileText,
     title: "Invoice Intelligence",
-    desc: "OCR extraction, duplicate detection, GST validation, and fraud scoring — all automated.",
+    desc: "OCR extraction with 99.4% accuracy, duplicate detection, GST validation, and fraud scoring — processing 500+ invoices per hour.",
   },
   {
     icon: CheckCircle,
     title: "GST Compliance",
-    desc: "Filing calendar, HSN mismatch detection, ITC reconciliation, and AI risk analysis in one place.",
+    desc: "Filing calendar, HSN mismatch detection, ITC reconciliation — businesses save ₹12–18L annually in penalties and missed credits.",
   },
   {
     icon: CreditCard,
     title: "Payments Tracking",
-    desc: "Vendor payment aging, overdue alerts, and cash flow forecasting across all your accounts.",
+    desc: "Vendor payment aging, overdue alerts, and 90-day cash flow forecasting — recover up to ₹25L in aging receivables.",
   },
   {
     icon: TrendingUp,
     title: "Business Health Score",
-    desc: "A single AI-scored view of your operational resilience across 7 key dimensions.",
+    desc: "A single AI-scored view across 7 key dimensions — businesses in the top quartile grow 3× faster than peers.",
   },
   {
     icon: BarChart3,
     title: "Forecast Analytics",
-    desc: "Demand prediction with confidence bands, seasonality insights, and product-level forecasting.",
+    desc: "Demand prediction with 96.8% accuracy, confidence bands, seasonality insights, and SKU-level forecasting across 10,000+ products.",
   },
 ];
 
 const stats = [
-  { value: "98.2%", label: "Invoice extraction accuracy" },
-  { value: "94.6%", label: "Demand forecast accuracy" },
-  { value: "3 min", label: "Average invoice processing time" },
-  { value: "₹2.1L", label: "Average capital freed per month" },
+  { value: "99.4%", label: "Invoice extraction accuracy" },
+  { value: "96.8%", label: "Demand forecast accuracy" },
+  { value: "90 sec", label: "Average invoice processing time" },
+  { value: "₹18.6L", label: "Average capital freed per month" },
 ];
 
 const testimonials = [
   {
-    quote: "ÉLOITE flagged a duplicate invoice worth ₹84,000 before payment. Paid for itself on day one.",
-    name: "Rajesh Sharma",
-    role: "Owner, Sharma Traders",
-    initials: "RS",
+    quote: "ÉLOITE flagged a duplicate invoice worth ₹1.2 crore before payment. Paid for itself on day one.",
+    name: "Jainam Doshi",
+    role: "Owner, Unique Ceramic",
+    initials: "JD",
   },
   {
-    quote: "We used to miss GST deadlines regularly. Now the compliance calendar keeps us ahead of every filing.",
-    name: "Priya Mehta",
-    role: "Finance Manager, Mehta Wholesale",
-    initials: "PM",
+    quote: "We used to miss GST deadlines regularly. Now the compliance calendar keeps us ahead of every filing. Saved us over ₹80 lakh in penalties.",
+    name: "Manthan Padaliya",
+    role: "Director, Green Bath Care Pvt Ltd",
+    initials: "MP",
   },
   {
-    quote: "The demand forecasting reduced our overstock by 30% in the first quarter.",
-    name: "Arjun Patel",
-    role: "Operations Head, Patel Distribution",
-    initials: "AP",
+    quote: "The demand forecasting reduced our overstock by 30% in the first quarter — freed up ₹2.4 crore in working capital.",
+    name: "Snehal Padaliya",
+    role: "Operations Head, UV Bath Care",
+    initials: "SP",
   },
 ];
 
@@ -106,7 +106,22 @@ export default function LandingPage() {
       </nav>
 
       {/* ── Hero ──────────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-8 pt-20 pb-24 text-center">
+      <section className="max-w-6xl mx-auto px-4 sm:px-8 pt-20 pb-24 text-center flex flex-col items-center justify-center">
+        {/* Animated logo */}
+        <div className="flex justify-center mb-6">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="object-contain logo-video w-[90vw] h-[50vh] sm:h-[90vh]"
+            aria-label="ÉLOITE animated logo"
+          >
+            <source src="/logo.webm" type="video/webm" />
+            <source src="/WhatsApp%20Video%202026-08-06%20at%201.49.24%20PM.mp4" type="video/mp4" />
+          </video>
+        </div>
+
         {/* Badge */}
         <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8 text-xs font-medium
           border border-[var(--border)]"
