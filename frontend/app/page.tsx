@@ -118,7 +118,6 @@ export default function LandingPage() {
             aria-label="ÉLOITE animated logo"
           >
             <source src="/logo.webm" type="video/webm" />
-            <source src="/WhatsApp%20Video%202026-08-06%20at%201.49.24%20PM.mp4" type="video/mp4" />
           </video>
         </div>
 
