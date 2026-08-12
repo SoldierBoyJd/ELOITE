@@ -117,7 +117,9 @@ export default function LandingPage() {
             className="object-contain logo-video w-[90vw] h-[50vh] sm:h-[90vh]"
             aria-label="ÉLOITE animated logo"
           >
+            {/* WebM for Chrome/Firefox/Edge; MP4 fallback for Safari */}
             <source src="/logo.webm" type="video/webm" />
+            <source src="/logo.mp4" type="video/mp4" />
           </video>
         </div>
 
