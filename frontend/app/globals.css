@@ -85,7 +85,7 @@ body {
 }
 
 /* ── Animated logo video ────────────────────────────────── */
-/* Light mode: render as dark silhouette */
+/* WebM (Chrome/Firefox/Edge): transparent alpha — no blending needed */
 .logo-video {
   filter: brightness(0);
 }
@@ -93,4 +93,33 @@ body {
 /* Dark mode: brighten so it reads against dark bg */
 .dark .logo-video {
   filter: brightness(10);
+}
+
+/*
+ * Safari MP4 fallback: H.264 has no alpha channel, so the video
+ * renders with a solid light-blue background. Two-part fix:
+ *
+ * 1. The wrapper clips its background to match the page colour,
+ *    hiding any background bleed around the video edges.
+ * 2. mix-blend-mode knocks out the video's own solid background:
+ *      multiply → light colours disappear into the light page bg
+ *      screen   → dark colours disappear into the dark page bg
+ */
+@supports (background: -webkit-named-image(apple-pay-logo-black)) {
+  /* Targets Safari only */
+
+  .logo-video-wrapper {
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .logo-video {
+    mix-blend-mode: multiply;
+    filter: brightness(0);
+  }
+
+  .dark .logo-video {
+    mix-blend-mode: screen;
+    filter: brightness(10);
+  }
 }

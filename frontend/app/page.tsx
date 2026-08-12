@@ -108,7 +108,8 @@ export default function LandingPage() {
       {/* ── Hero ──────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-8 pt-20 pb-24 text-center flex flex-col items-center justify-center">
         {/* Animated logo */}
-        <div className="flex justify-center mb-6">
+        {/* The wrapper bg matches the page so Safari's MP4 (no alpha) blends seamlessly */}
+        <div className="flex justify-center mb-6 logo-video-wrapper">
           <video
             autoPlay
             loop
